@@ -1,0 +1,27 @@
+# Build artifacts
+*.o
+*.a
+*.so
+*.d
+stream-player
+libgal_hook.so
+
+# Package & temporary directories
+dist/
+build/
+bin/
+lib/
+backups/
+logs/
+*.log
+*.tmp
+*.h264
+*.pcapng
+
+# IDE & OS metadata
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*~
