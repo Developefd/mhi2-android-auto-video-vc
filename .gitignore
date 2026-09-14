@@ -18,6 +18,9 @@ logs/
 *.h264
 *.pcapng
 
+# Local SDK clones/reference checkouts
+player/mibsdk/
+
 # IDE & OS metadata
 .DS_Store
 Thumbs.db
