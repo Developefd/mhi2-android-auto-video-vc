@@ -30,6 +30,7 @@ as the other.
 | `libgal_hook.so` | Secondary endpoint, ABI checks, encoded-frame handoff, phone ACK policy, player supervision | A replacement center renderer or Java HMI state |
 | `vc_stream_out.c` | Loopback listener/client lifecycle and bounded bootstrap cache | Video decoding or DMDT routing |
 | `stream-player` | FFmpeg decode, EGL/OpenKODE presentation, player-side ACK, Cockpit route restoration | Phone-protocol negotiation or GAL object manipulation |
+| `libdmdt_flush.so` | Flushing `dmdt` output on `_exit()` so the player's `dmdt gs` readiness and route checks can read it | GAL or player state; it is preloaded only into `dmdt` |
 | Java/LSD HMI | Center-canvas Exit and App-Connect state | Secondary H.264 transport or Cockpit frame pacing |
 
 This split gives each failure a narrow owner. A phone that never opens the

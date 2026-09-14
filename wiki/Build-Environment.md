@@ -13,17 +13,18 @@ make hook
 (cd player && make)
 ```
 
-`make hook` builds `libgal_hook.so` through the QNX ARM toolchain in Docker.
-The root Makefile provides `all`, `hook`, `shell`, and `clean`; it does not
-create a release package. If deployment expects `dist/sdcard_hook`, assemble
-that package through the corresponding packaging workflow before invoking the
-remote deployment helper.
+`make hook` builds `libgal_hook.so` and `lib/libdmdt_flush.so` through the QNX
+ARM toolchain in Docker. The root Makefile provides `all`, `hook`, `shell`, and
+`clean`; it does not create a release package. If deployment expects
+`dist/sdcard_hook`, assemble that package through the corresponding packaging
+workflow before invoking the remote deployment helper.
 
 ## Expected artifacts
 
 | Artifact | Source | Role |
 |---|---|---|
 | `libgal_hook.so` | `make hook` | GAL preload hook. |
+| `lib/libdmdt_flush.so` | `make hook` | `_exit()` interposer that makes `dmdt` flush its output, so the player can read `dmdt gs` through a pipe. Goes in the package's `lib/`; see [where the libraries go](Installation-and-Safety-Guide.md#where-the-libraries-go). |
 | `player/stream-player` | `player/Makefile` | FFmpeg/OpenKODE cluster renderer. |
 | `player/config.txt` | Repository | Player defaults and stream URL. |
 | `scripts/*.sh` | Repository | Install, rollback, diagnostics, deployment helpers. |

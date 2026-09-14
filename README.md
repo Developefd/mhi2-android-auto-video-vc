@@ -147,9 +147,10 @@ make hook
 (cd player && make)
 ```
 
-This produces `libgal_hook.so` and `player/stream-player`. Verify that release
-artifacts target QNX ARM; a successful host build does not validate the GAL ABI,
-phone negotiation, DMDT route, or Cockpit output.
+This produces `libgal_hook.so`, `lib/libdmdt_flush.so`, and
+`player/stream-player`. Verify that release artifacts target QNX ARM; a
+successful host build does not validate the GAL ABI, phone negotiation, DMDT
+route, or Cockpit output.
 
 ## Install and validate
 
@@ -157,8 +158,13 @@ phone negotiation, DMDT route, or Cockpit output.
 > `smartphone_integrator` has an approximately ten-entry `envs` limit. Exceeding
 > it can silently discard the entire environment array, including `LD_PRELOAD`.
 
-Prepare the expected SD-card package, including the hook, player, scripts,
-`libdmdt_flush.so`, and reviewed configuration. On the unit:
+Prepare the SD-card package: `libgal_hook.so`, `stream-player`, `config.txt`,
+`enable_hook.sh`, `disable_hook.sh` and a reviewed `gal_dualscreen.conf` in the
+card root, `libdmdt_flush.so` in `lib/`, and `hook_status.sh` and
+`lib_app_mount.sh` in `scripts/`. The installer copies both libraries under
+`/mnt/app/eso/lib`; see
+[where the libraries go](wiki/Installation-and-Safety-Guide.md#where-the-libraries-go).
+On the unit:
 
 ```sh
 cd /fs/sdb0
@@ -205,9 +211,10 @@ on the unit.
 ## Repository layout
 
 ```text
-src/       GAL hook, secondary-sink handling, stream transport, player manager
-player/    FFmpeg/OpenKODE Cockpit renderer
-scripts/   configuration template, installation, rollback, diagnostics, deploy
+src/        GAL hook, secondary-sink handling, stream transport, player manager
+player/     FFmpeg/OpenKODE Cockpit renderer
+dmdt_flush/ _exit() interposer that lets the player read dmdt output via popen
+scripts/    configuration template, installation, rollback, diagnostics, deploy
 ```
 
 ## Roadmap
