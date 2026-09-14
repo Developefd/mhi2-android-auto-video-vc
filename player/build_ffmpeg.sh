@@ -21,11 +21,16 @@
 # or run `make ffmpeg-clean`.
 set -e
 
-FFMPEG_VERSION="${FFMPEG_VERSION:-4.2.9}"
+# 6.1.5 is the release stream-player has been tested with on the head unit
+# (VcMOSTRenderMqb's ffmpeg-instructions use it too). Its tarball is pinned
+# by SHA-256; set FFMPEG_SHA256 as well when overriding FFMPEG_VERSION.
+FFMPEG_VERSION="${FFMPEG_VERSION:-6.1.5}"
+FFMPEG_SHA256="${FFMPEG_SHA256:-b8c8e926b948c14df1264cd0beac1c773df9170ac9cac97bdf1275cd3d385902}"
 # .tar.gz, not .tar.xz/.tar.bz2: the mibsdk image only ships gzip, which
 # GNU tar decompresses internally (via zlib) without needing an xz/bzip2
 # binary on PATH.
 FFMPEG_SRC_URL="${FFMPEG_SRC_URL:-https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.gz}"
+TARBALL="ffmpeg-${FFMPEG_VERSION}.tar.gz"
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 BUILD_DIR="${BUILD_DIR:-${SCRIPT_DIR}/build}"
 PREFIX="${FFMPEG_PATH:-${BUILD_DIR}/ffmpeg-mini}"
@@ -57,9 +62,18 @@ fi
 mkdir -p "${BUILD_DIR}"
 cd "${BUILD_DIR}"
 
-if [ ! -f "ffmpeg-${FFMPEG_VERSION}.tar.gz" ]; then
+if [ ! -f "${TARBALL}" ]; then
     echo "==> Downloading FFmpeg ${FFMPEG_VERSION} sources..."
-    curl -fL --retry 3 -o "ffmpeg-${FFMPEG_VERSION}.tar.gz" "${FFMPEG_SRC_URL}"
+    # Download under a temporary name, so an interrupted transfer is
+    # fetched again next time instead of being taken for the tarball.
+    curl -fL --retry 3 -o "${TARBALL}.part" "${FFMPEG_SRC_URL}"
+    mv "${TARBALL}.part" "${TARBALL}"
+fi
+if ! echo "${FFMPEG_SHA256}  ${TARBALL}" | sha256sum -c - >/dev/null 2>&1; then
+    rm -f "${TARBALL}"
+    echo "!! ${TARBALL} does not match FFMPEG_SHA256 (${FFMPEG_SHA256}); deleted it." >&2
+    echo "   If you changed FFMPEG_VERSION, set FFMPEG_SHA256 to that tarball's SHA-256." >&2
+    exit 1
 fi
 
 # player/Makefile compiles opengl_gpu.cc with "-I$(FFMPEG_PATH)" and it
@@ -68,11 +82,12 @@ fi
 # next to its .a (libavcodec/avcodec.h beside libavcodec/libavcodec.a,
 # etc.) -- not a `make install` tree, which splits headers into
 # PREFIX/include and would break that -I. So we build FFmpeg directly
-# inside PREFIX and never run `make install`.
-if [ ! -d "${PREFIX}" ]; then
+# inside PREFIX and never run `make install`. PREFIX can already exist
+# but be empty (player/Makefile bind-mounts it), so test for the sources.
+if [ ! -f "${PREFIX}/configure" ]; then
     echo "==> Extracting FFmpeg ${FFMPEG_VERSION} into ${PREFIX}..."
     mkdir -p "${PREFIX}"
-    tar xf "ffmpeg-${FFMPEG_VERSION}.tar.gz" -C "${PREFIX}" --strip-components=1
+    tar xf "${TARBALL}" -C "${PREFIX}" --strip-components=1
 fi
 
 cd "${PREFIX}"
